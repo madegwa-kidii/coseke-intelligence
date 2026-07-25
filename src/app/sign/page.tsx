@@ -1,6 +1,6 @@
 'use client'
 
-import SignaturePad from "@/app/components/SignaturePad";
+import SignaturePad from "@/components/SignaturePad";
 
 export default function Home() {
 
