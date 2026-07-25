@@ -26,6 +26,12 @@ export interface IUser extends Document {
     emailVerified: boolean;
     emailVerificationToken?: string;
     emailVerificationExpires?: Date;
+    
+    // OAuth fields
+    googleId?: string;
+    authProvider?: 'email' | 'google';
+    profileCompleted?: boolean;
+    
     comparePassword(candidate: string): Promise<boolean>;
     hasRole(role: Role): boolean;
     addRole(role: Role): void;
@@ -109,6 +115,24 @@ const UserSchema = new Schema<IUser>(
         emailVerificationExpires: {
             type: Date,
             select: false,
+        },
+        
+        // OAuth fields
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true,
+            index: true,
+        },
+        authProvider: {
+            type: String,
+            enum: ['email', 'google'],
+            default: 'email',
+            index: true,
+        },
+        profileCompleted: {
+            type: Boolean,
+            default: false,
         },
     },
     {
