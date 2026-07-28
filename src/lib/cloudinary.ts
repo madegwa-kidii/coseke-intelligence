@@ -86,5 +86,5 @@ export async function getResourceInfo(publicId: string) {
 }
 
 export async function updateResourceTags(publicId: string, tags: string[]) {
-  return cloudinary.uploader.add_tag(tags, [publicId]);
+  return cloudinary.uploader.add_tag(tags.join(','), [publicId]);
 }
