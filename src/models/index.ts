@@ -1,4 +1,5 @@
 
 import {User} from './user';
+import {Media} from './media';
 
-export { User };
+export { User, Media };
