@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -12,15 +11,14 @@ export default function VerifyEmailPage() {
   const token = searchParams.get('token');
   const email = searchParams.get('email');
 
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'invalid'>(
+      () => (token && email ? 'loading' : 'invalid')
+  );
   const [error, setError] = useState('');
   const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
-    if (!token || !email) {
-      setStatus('invalid');
-      return;
-    }
+    if (!token || !email) return;
 
     const verifyEmail = async () => {
       try {
@@ -38,15 +36,16 @@ export default function VerifyEmailPage() {
           setStatus('error');
           setError(data.message || 'Verification failed');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setStatus('error');
-        setError(err.message || 'Verification failed');
+        setError(err instanceof Error ? err.message : 'Verification failed');
       }
     };
 
     verifyEmail();
   }, [token, email]);
 
+  // ...rest of component (handleResendEmail and JSX) unchanged
   const handleResendEmail = async () => {
     if (!email) return;
 
@@ -71,8 +70,8 @@ export default function VerifyEmailPage() {
       } else {
         setError(data.message || 'Failed to resend email');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to resend email');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to resend email');
     } finally {
       setIsResending(false);
     }
