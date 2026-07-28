@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface AuthContextType {
@@ -10,6 +10,8 @@ interface AuthContextType {
     email?: string;
     name?: string;
     image?: string;
+    roles?: string[];
+    profileCompleted?: boolean;
   } | null;
   isLoading: boolean;
 }
@@ -19,9 +21,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
 
-  const value = {
+  const value: AuthContextType = {
     isAuthenticated: status === 'authenticated',
-    user: session?.user || null,
+    user: session?.user
+        ? {
+          id: session.user.id ?? undefined,
+          email: session.user.email ?? undefined,
+          name: session.user.name ?? undefined,
+          image: session.user.image ?? undefined,
+          roles: session.user.roles,
+          profileCompleted: session.user.profileCompleted,
+        }
+        : null,
     isLoading: status === 'loading',
   };
 
