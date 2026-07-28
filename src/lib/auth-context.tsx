@@ -6,10 +6,12 @@ import { useSession } from 'next-auth/react';
 interface AuthContextType {
   isAuthenticated: boolean;
   user: {
-    id?: string;
-    email?: string;
-    name?: string;
-    image?: string;
+    id?: string | null;
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
+    roles?: string[];
+    profileCompleted?: boolean;
   } | null;
   isLoading: boolean;
 }
