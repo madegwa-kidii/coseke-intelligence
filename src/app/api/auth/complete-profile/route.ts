@@ -79,8 +79,8 @@ export async function PUT(req: NextRequest) {
                 image: user.image,
             },
         });
-    } catch (err: any) {
-        console.error("Profile completion error:", err);
+    } catch (err: unknown) {
+        console.error(err instanceof Error ? err.message : 'Google registration failed');
         return NextResponse.json(
             { success: false, message: "Failed to complete profile" },
             { status: 500 }

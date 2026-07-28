@@ -56,8 +56,8 @@ export default function CompleteProfilePage() {
       } else {
         setError(data.message || 'Failed to complete profile');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to complete profile');
+    } catch (err: unknown) {
+      setError( err instanceof Error ? err.message : 'Failed to complete profile');
     } finally {
       setIsLoading(false);
     }

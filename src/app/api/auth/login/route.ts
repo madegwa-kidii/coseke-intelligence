@@ -42,8 +42,9 @@ export async function POST(req: NextRequest) {
                 profileCompleted: user.profileCompleted,
             },
         });
-    } catch (err: any) {
-        console.error("Login check error:", err);
+    } catch (err: unknown) {
+        console.error(err instanceof Error ? err.message : 'Google registration failed');
+
         return NextResponse.json(
             { success: false, message: "Login check failed" },
             { status: 500 }

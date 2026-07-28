@@ -68,19 +68,28 @@ export default function RegisterPage() {
 
       setRegisteredEmail(formData.email);
       setStep('verification');
-    } catch (err: any) {
-      setError(err.message || 'Registration failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // const handleGoogleRegister = async () => {
+  //   setError('');
+  //   try {
+  //     await signIn('google', { callbackUrl: '/auth/complete-profile' });
+  //   } catch (err: any) {
+  //     setError(err.message || 'Google registration failed');
+  //   }
+  // };
+
   const handleGoogleRegister = async () => {
     setError('');
     try {
       await signIn('google', { callbackUrl: '/auth/complete-profile' });
-    } catch (err: any) {
-      setError(err.message || 'Google registration failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Google registration failed');
     }
   };
 
