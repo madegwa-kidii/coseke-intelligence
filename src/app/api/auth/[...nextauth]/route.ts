@@ -15,12 +15,21 @@ declare module "next-auth" {
         user: {
             id?: string | null
             roles?: string[]
+            profileCompleted?: boolean
         } & DefaultSession["user"]
     }
-
     interface User {
         id: string
         roles?: string[]
+        profileCompleted?: boolean
+    }
+}
+
+declare module "next-auth/jwt" {
+    interface JWT {
+        userId?: string
+        roles?: string[]
+        profileCompleted?: boolean
     }
 }
 
@@ -42,12 +51,6 @@ async function generateUniqueUsername(): Promise<string> {
     return `user_${Date.now().toString(36)}${crypto.randomBytes(3).toString("hex")}`;
 }
 
-declare module "next-auth/jwt" {
-    interface JWT {
-        userId?: string
-        roles?: string[]
-    }
-}
 
 
 export const authOptions: NextAuthOptions = {
@@ -94,6 +97,7 @@ export const authOptions: NextAuthOptions = {
                         email: user.email,
                         name: user.name,
                         image: user.image,
+                        profileCompleted: user.profileCompleted ?? false,
                     };
                 } catch (error: unknown) {
                     const message = error instanceof Error ? error.message : "Authentication failed";
@@ -117,18 +121,15 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.email = user.email;
                 token.roles = user.roles;
+                token.profileCompleted = user.profileCompleted;
             }
 
-            // Handle OAuth sign-in
             if (account?.provider === "google" && user) {
                 try {
                     await connectToDatabase();
-
-                    // Find or create user for Google OAuth
                     let dbUser = await User.findOne({ email: user.email });
 
                     if (!dbUser) {
-                        // Create new user from Google OAuth with a random unique username
                         const username = await generateUniqueUsername();
                         dbUser = await User.create({
                             googleId: user.id,
@@ -137,11 +138,10 @@ export const authOptions: NextAuthOptions = {
                             image: user.image,
                             username: username,
                             authProvider: "google",
-                            emailVerified: true, // Auto-verify for Google OAuth
-                            profileCompleted: false, // Ask user to complete profile
+                            emailVerified: true,
+                            profileCompleted: false,
                         });
                     } else if (!dbUser.googleId) {
-                        // Link Google account to existing user
                         dbUser.googleId = user.id;
                         dbUser.authProvider = "google";
                         dbUser.image = user.image || dbUser.image;
@@ -149,6 +149,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     token.id = dbUser._id.toString();
+                    token.roles = dbUser.roles;
                     token.profileCompleted = dbUser.profileCompleted;
                 } catch (error) {
                     console.error("Google OAuth callback error:", error);
@@ -163,6 +164,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.roles = token.roles as string[];
+                session.user.profileCompleted = token.profileCompleted as boolean;
             }
             return session;
         },
