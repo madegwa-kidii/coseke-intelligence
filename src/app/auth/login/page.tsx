@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +23,7 @@ function LoginForm() {
 
     try {
       const result = await signIn('credentials', {
-        email,
+        identifier,
         password,
         redirect: false,
       });
@@ -102,12 +102,12 @@ function LoginForm() {
             {/* Email/Password Form */}
             <form onSubmit={handleCredentialsLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs uppercase font-mono text-slate-400">Identifier</label>
+                <label className="text-xs uppercase font-mono text-slate-400">Email or Username</label>
                 <Input
-                    type="email"
-                    placeholder="user@domain.net"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="user@domain.net or username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     disabled={isLoading}
                     className="bg-slate-900 border-slate-700 text-white placeholder-slate-500"
                 />

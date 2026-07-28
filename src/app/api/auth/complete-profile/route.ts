@@ -25,13 +25,23 @@ export async function PUT(req: NextRequest) {
             );
         }
 
-        const { username, phone, image } = body;
+        const { username, phone, image, password } = body;
 
         if (!username) {
             return NextResponse.json(
                 { success: false, message: "Username is required" },
                 { status: 400 }
             );
+        }
+
+        // Validate password if provided
+        if (password) {
+            if (password.length < 6) {
+                return NextResponse.json(
+                    { success: false, message: "Password must be at least 6 characters" },
+                    { status: 400 }
+                );
+            }
         }
 
         await connectToDatabase();
@@ -63,6 +73,9 @@ export async function PUT(req: NextRequest) {
         user.username = username.toLowerCase();
         if (phone) user.phone = phone;
         if (image) user.image = image;
+        if (password) {
+            user.password = password;
+        }
         user.profileCompleted = true;
 
         await user.save();
