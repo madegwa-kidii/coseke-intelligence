@@ -59,22 +59,27 @@ export const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                email: { label: "Email", type: "email" },
+                identifier: { label: "Email or Username", type: "text" },
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
-                    throw new Error("Email and password are required");
+                if (!credentials?.identifier || !credentials?.password) {
+                    throw new Error("Email/username and password are required");
                 }
 
                 try {
                     await connectToDatabase();
 
-                    // Find user with email
-                    const user = await User.findOne({ email: credentials.email }).select("+password");
+                    // Find user by email or username
+                    const user = await User.findOne({
+                        $or: [
+                            { email: credentials.identifier.toLowerCase() },
+                            { username: credentials.identifier.toLowerCase() }
+                        ]
+                    }).select("+password");
 
                     if (!user) {
-                        throw new Error("Invalid email or password");
+                        throw new Error("Invalid email, username, or password");
                     }
 
                     // Check if email is verified
@@ -85,7 +90,7 @@ export const authOptions: NextAuthOptions = {
                     // Compare password
                     const isPasswordValid = await user.comparePassword(credentials.password);
                     if (!isPasswordValid) {
-                        throw new Error("Invalid email or password");
+                        throw new Error("Invalid email, username, or password");
                     }
 
                     // Update last login

@@ -13,6 +13,8 @@ export default function CompleteProfilePage() {
   const [formData, setFormData] = useState({
     username: '',
     phone: '',
+    password: '',
+    confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +39,18 @@ export default function CompleteProfilePage() {
       return;
     }
 
+    // Validate password if provided
+    if (formData.password) {
+      if (formData.password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -46,6 +60,7 @@ export default function CompleteProfilePage() {
         body: JSON.stringify({
           username: formData.username,
           phone: formData.phone,
+          password: formData.password || undefined,
         }),
       });
 
@@ -128,6 +143,41 @@ export default function CompleteProfilePage() {
                 disabled={isLoading}
                 className="bg-slate-900 border-slate-700 text-white placeholder-slate-500"
               />
+            </div>
+
+            <div className="border-t border-slate-700 pt-4">
+              <p className="text-xs uppercase font-mono text-slate-400 mb-3">Security</p>
+              
+              <div className="space-y-2">
+                <label className="text-xs uppercase font-mono text-slate-400">Password (Optional)</label>
+                <Input
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                  className="bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                />
+                <p className="text-xs text-slate-500">
+                  Leave blank to set password later. Minimum 6 characters.
+                </p>
+              </div>
+
+              {formData.password && (
+                <div className="space-y-2 mt-3">
+                  <label className="text-xs uppercase font-mono text-slate-400">Confirm Password *</label>
+                  <Input
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    disabled={isLoading}
+                    className="bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  />
+                </div>
+              )}
             </div>
 
             <Button
