@@ -1,9 +1,54 @@
-import NextAuth, { NextAuthOptions, Session } from "next-auth";
+import NextAuth, {DefaultSession, NextAuthOptions, Session} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { User } from "@/models";
 import { connectToDatabase } from "@/lib/db";
 import type { JWT } from "next-auth/jwt";
+
+import crypto from "crypto";
+
+
+
+// Extend NextAuth types to include roles
+declare module "next-auth" {
+    interface Session {
+        user: {
+            id?: string | null
+            roles?: string[]
+        } & DefaultSession["user"]
+    }
+
+    interface User {
+        id: string
+        roles?: string[]
+    }
+}
+
+// Generates a random, guaranteed-unique username for OAuth signups
+async function generateUniqueUsername(): Promise<string> {
+    const MAX_ATTEMPTS = 5;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        // e.g. "user_9f2a7c1b3e" - random hex, unlikely to collide, no PII
+        const candidate = `user_${crypto.randomBytes(6).toString("hex")}`;
+
+        const existing = await User.findOne({ username: candidate });
+        if (!existing) {
+            return candidate;
+        }
+    }
+
+    // Extremely unlikely fallback: timestamp + random suffix guarantees uniqueness
+    return `user_${Date.now().toString(36)}${crypto.randomBytes(3).toString("hex")}`;
+}
+
+declare module "next-auth/jwt" {
+    interface JWT {
+        userId?: string
+        roles?: string[]
+    }
+}
+
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -50,8 +95,9 @@ export const authOptions: NextAuthOptions = {
                         name: user.name,
                         image: user.image,
                     };
-                } catch (error: any) {
-                    throw new Error(error.message || "Authentication failed");
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : "Authentication failed";
+                    throw new Error(message);
                 }
             },
         }),
@@ -70,6 +116,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.email = user.email;
+                token.roles = user.roles;
             }
 
             // Handle OAuth sign-in
@@ -81,8 +128,8 @@ export const authOptions: NextAuthOptions = {
                     let dbUser = await User.findOne({ email: user.email });
 
                     if (!dbUser) {
-                        // Create new user from Google OAuth
-                        const username = user.email?.split("@")[0] || user.name?.replace(/\s+/g, "").toLowerCase();
+                        // Create new user from Google OAuth with a random unique username
+                        const username = await generateUniqueUsername();
                         dbUser = await User.create({
                             googleId: user.id,
                             email: user.email,
@@ -115,6 +162,7 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }: { session: Session; token: JWT }) {
             if (session.user) {
                 session.user.id = token.id as string;
+                session.user.roles = token.roles as string[];
             }
             return session;
         },
