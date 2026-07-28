@@ -59,27 +59,28 @@ export const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                identifier: { label: "Email or Username", type: "text" },
+                identifier: { label: "Email, Username, or Phone", type: "text" },
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
                 if (!credentials?.identifier || !credentials?.password) {
-                    throw new Error("Email/username and password are required");
+                    throw new Error("Email, username, phone, and password are required");
                 }
 
                 try {
                     await connectToDatabase();
 
-                    // Find user by email or username
+                    // Find user by email, username, or phone number
                     const user = await User.findOne({
                         $or: [
                             { email: credentials.identifier.toLowerCase() },
-                            { username: credentials.identifier.toLowerCase() }
+                            { username: credentials.identifier.toLowerCase() },
+                            { phone: credentials.identifier }
                         ]
                     }).select("+password");
 
                     if (!user) {
-                        throw new Error("Invalid email, username, or password");
+                        throw new Error("Invalid email, username, phone, or password");
                     }
 
                     // Check if email is verified
@@ -90,7 +91,7 @@ export const authOptions: NextAuthOptions = {
                     // Compare password
                     const isPasswordValid = await user.comparePassword(credentials.password);
                     if (!isPasswordValid) {
-                        throw new Error("Invalid email, username, or password");
+                        throw new Error("Invalid email, username, phone, or password");
                     }
 
                     // Update last login

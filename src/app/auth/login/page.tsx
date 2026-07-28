@@ -102,10 +102,10 @@ function LoginForm() {
             {/* Email/Password Form */}
             <form onSubmit={handleCredentialsLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs uppercase font-mono text-slate-400">Email or Username</label>
+                <label className="text-xs uppercase font-mono text-slate-400">Email, Username, or Phone</label>
                 <Input
                     type="text"
-                    placeholder="user@domain.net or username"
+                    placeholder="user@domain.net, username, or +1234567890"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     disabled={isLoading}
