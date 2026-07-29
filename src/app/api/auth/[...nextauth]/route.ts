@@ -52,8 +52,7 @@ async function generateUniqueUsername(): Promise<string> {
 }
 
 
-
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
     providers: [
         // Email/Password Provider
         CredentialsProvider({
@@ -214,7 +213,7 @@ export const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
 
     debug: process.env.NODE_ENV === "development",
-};
+});
 
-const handler = NextAuth(authOptions);
+
 export { handler as GET, handler as POST };
