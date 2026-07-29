@@ -15,7 +15,7 @@ const withPWA = withPWAInit({
 
 
 const nextConfig: NextConfig = {
-    // turbopack: {},
+    turbopack: {},
     images: {
         remotePatterns: [
             {
