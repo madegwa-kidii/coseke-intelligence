@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../[...nextauth]/route";
 import { User } from "@/models";
 import { connectToDatabase } from "@/lib/db";
 
 export async function PUT(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession();
 
         if (!session?.user?.id) {
             return NextResponse.json(
