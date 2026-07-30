@@ -1,41 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
 
-// Configure web-push with VAPID keys
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+console.log('[send-push] Route initialized');
+
+if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  console.log('[send-push] Configuring web-push...');
   webpush.setVapidDetails(
-    process.env.VAPID_EMAIL || 'mailto:support@example.com',
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
+      process.env.VAPID_EMAIL || 'mailto:support@example.com',
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
   );
+  console.log('[send-push] web-push configured');
+} else {
+  console.warn('[send-push] VAPID keys missing during startup');
 }
 
 export async function POST(req: NextRequest) {
+  console.log('\n====================');
+  console.log('[send-push] POST request received');
+
   try {
+    console.log('[send-push] Parsing request body...');
+
     const body = await req.json();
-    const { title, body: messageBody, icon, badge } = body;
 
-    // Validation
+    console.log('[send-push] Body:', JSON.stringify(body, null, 2));
+
+    const {
+      title,
+      body: messageBody,
+      icon,
+      badge,
+    } = body;
+
+    console.log('[send-push] Parsed values');
+    console.log({
+      title,
+      messageBody,
+      icon,
+      badge,
+    });
+
     if (!title || !messageBody) {
+      console.error('[send-push] Validation failed');
+      console.error({
+        hasTitle: !!title,
+        hasBody: !!messageBody,
+      });
+
       return NextResponse.json(
-        { message: 'Missing required fields: title, body' },
-        { status: 400 }
+          {
+            message: 'Missing required fields: title, body',
+          },
+          { status: 400 }
       );
     }
 
-    // Check if VAPID keys are configured
-    if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    console.log('[send-push] Validation passed');
+
+    console.log('[send-push] Environment check');
+
+    console.log({
+      VAPID_PUBLIC_KEY_EXISTS: !!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY_EXISTS: !!process.env.VAPID_PRIVATE_KEY,
+      VAPID_EMAIL: process.env.VAPID_EMAIL,
+      PUBLIC_KEY_LENGTH: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.length,
+      PRIVATE_KEY_LENGTH: process.env.VAPID_PRIVATE_KEY?.length,
+    });
+
+    if (
+        !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        !process.env.VAPID_PRIVATE_KEY
+    ) {
+      console.error('[send-push] Missing VAPID configuration');
+
       return NextResponse.json(
-        {
-          success: false,
-          message: 'Push notification service is not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.',
-        },
-        { status: 500 }
+          {
+            success: false,
+            message: 'VAPID keys are missing',
+          },
+          { status: 500 }
       );
     }
 
-    // Get all subscriptions from browser storage or database
-    // For now, we'll return a demo response showing the payload
+    console.log('[send-push] Creating notification payload');
+
     const notificationPayload = {
       title,
       body: messageBody,
@@ -49,52 +98,43 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // In a real implementation, you would:
-    // 1. Fetch all subscriptions from your database
-    // 2. Send notifications to each subscription
-    // 3. Handle failed subscriptions (expired, revoked)
+    console.log(
+        '[send-push] Payload:',
+        JSON.stringify(notificationPayload, null, 2)
+    );
 
-    // Example of how to send to a subscription:
-    // await webpush.sendNotification(subscription, JSON.stringify(notificationPayload))
+    console.log('[send-push] Returning success');
 
     return NextResponse.json({
       success: true,
       message: 'Push notification sent successfully',
       payload: notificationPayload,
-      note: 'To send notifications to users, you need to store their push subscriptions and iterate through them.',
     });
+
   } catch (error) {
-    console.error('Error sending push notification:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to send push notification',
-      },
-      { status: 500 }
-    );
-  }
-}
+    console.error('================================');
+    console.error('[send-push] ERROR');
+    console.error('Type:', error?.constructor?.name);
 
-// Helper endpoint to get VAPID public key
-export async function GET() {
-  try {
-    const publicKey = process.env.VAPID_PUBLIC_KEY;
-
-    if (!publicKey) {
-      return NextResponse.json(
-        { message: 'VAPID public key not configured' },
-        { status: 500 }
-      );
+    if (error instanceof Error) {
+      console.error('Message:', error.message);
+      console.error('Stack:\n', error.stack);
+    } else {
+      console.error(error);
     }
 
-    return NextResponse.json({
-      publicKey,
-    });
-  } catch (error) {
-    console.error('Error getting VAPID key:', error);
     return NextResponse.json(
-      { message: 'Failed to get VAPID key' },
-      { status: 500 }
+        {
+          success: false,
+          message:
+              error instanceof Error
+                  ? error.message
+                  : 'Unknown error',
+        },
+        { status: 500 }
     );
+  } finally {
+    console.log('[send-push] Request finished');
+    console.log('====================\n');
   }
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/SessionProvider";
 import { AuthProvider } from "@/lib/auth-context";
 import InstallPrompt from "@/components/InstallPrompt";
+import {Header} from "@/components/header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -136,6 +137,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
       <SessionProvider>
         <AuthProvider>
+          <Header />
           {children}
           <InstallPrompt />
         </AuthProvider>
