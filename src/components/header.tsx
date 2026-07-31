@@ -42,11 +42,8 @@ export function Header() {
     //added the route
     const navLinks = [
         { label: "Home", href: "/" },
-        { label: "Daraja Tester", href: "/daraja-tester" },
-        { label: "Wallet", href: "/wallet" },
-        { label: "Transactions", href: "/transactions" },
-        { label: "Pricing", href: "/pricing" },
-        { label: "Docs", href: "/docs" },
+        { label: "Attendance", href: "/attendance" },
+        { label: "Images", href: "/images" },
         { label: "My Account", href: "/account" },
     ]
 
@@ -70,7 +67,7 @@ export function Header() {
         >
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2">
-                    <span className="font-bold text-xl">Paysuit</span>
+                    <span className="font-bold text-xl">Coseke</span>
                 </Link>
 
                 {/* Desktop Navigation */}

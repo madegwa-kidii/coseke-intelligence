@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import { useSession } from 'next-auth/react';
+import {NotificationProvider} from "@/components/notifications/notification-context";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -36,7 +37,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: status === 'loading',
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+      <AuthContext.Provider value={value}>
+          <NotificationProvider>
+              {children}
+          </NotificationProvider>
+      </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

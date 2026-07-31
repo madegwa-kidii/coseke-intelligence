@@ -46,21 +46,21 @@ export function MediaGallery({
       );
 
       if (!response.ok) {
-        throw new Error('Failed to load media');
+        throw new Error('Failed to load images');
       }
 
       const data = await response.json();
       setMedia(data.resources || []);
     } catch (error) {
-      console.error('Error loading media:', error);
-      toast.error('Failed to load media');
+      console.error('Error loading images:', error);
+      toast.error('Failed to load images');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (publicId: string) => {
-    if (!confirm('Are you sure you want to delete this media?')) {
+    if (!confirm('Are you sure you want to delete this images?')) {
       return;
     }
 
@@ -72,13 +72,13 @@ export function MediaGallery({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete media');
+        throw new Error('Failed to delete images');
       }
 
       setMedia(media.filter((item) => item.public_id !== publicId));
       toast.success('Media deleted successfully');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to delete media';
+      const message = error instanceof Error ? error.message : 'Failed to delete images';
       toast.error(message);
     }
   };

@@ -5,6 +5,8 @@ import { SessionProvider } from "@/components/SessionProvider";
 import { AuthProvider } from "@/lib/auth-context";
 import InstallPrompt from "@/components/InstallPrompt";
 import {Header} from "@/components/header";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import { NotificationDisplay } from "@/components/notifications/notification-display";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -139,7 +141,9 @@ export default function RootLayout({
         <AuthProvider>
           <Header />
           {children}
+          <NotificationDisplay />
           <InstallPrompt />
+          <MobileBottomNav />
         </AuthProvider>
       </SessionProvider>
       </body>
