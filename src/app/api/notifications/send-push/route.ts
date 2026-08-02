@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
+import { getServerSession } from 'next-auth';
+import { connectToDatabase } from '@/lib/db';
+import { User } from '@/models/user';
+import { authOptions } from '@/lib/auth-config';
 
 console.log('[send-push] Route initialized');
 
@@ -20,6 +24,16 @@ export async function POST(req: NextRequest) {
   console.log('[send-push] POST request received');
 
   try {
+    // Verify user is authenticated (admin check can be added here)
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      console.error('[send-push] Unauthorized request');
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     console.log('[send-push] Parsing request body...');
 
     const body = await req.json();
@@ -31,6 +45,7 @@ export async function POST(req: NextRequest) {
       body: messageBody,
       icon,
       badge,
+      userEmails,
     } = body;
 
     console.log('[send-push] Parsed values');
@@ -39,6 +54,7 @@ export async function POST(req: NextRequest) {
       messageBody,
       icon,
       badge,
+      userEmailsCount: userEmails?.length || 0,
     });
 
     if (!title || !messageBody) {
@@ -88,8 +104,8 @@ export async function POST(req: NextRequest) {
     const notificationPayload = {
       title,
       body: messageBody,
-      icon: icon || '/icon-192x192.png',
-      badge: badge || '/badge-72x72.png',
+      icon: icon || '/android-chrome-192x192.png',
+      badge: badge || '/android-chrome-192x192.png',
       tag: 'notification',
       requireInteraction: false,
       vibrate: [100, 50, 100],
@@ -103,12 +119,77 @@ export async function POST(req: NextRequest) {
         JSON.stringify(notificationPayload, null, 2)
     );
 
-    console.log('[send-push] Returning success');
+    // Connect to database and send notifications
+    await connectToDatabase();
+
+    // Build query - either send to specific users or all users
+    let query: any = {};
+    if (userEmails && userEmails.length > 0) {
+      query.email = { $in: userEmails };
+    }
+
+    console.log('[send-push] Querying users with subscriptions...');
+    const users = await User.find({
+      ...query,
+      pushSubscriptions: { $exists: true, $ne: [] },
+    });
+
+    console.log(`[send-push] Found ${users.length} users with subscriptions`);
+
+    let successCount = 0;
+    let failureCount = 0;
+    const errors: string[] = [];
+
+    // Send notification to each subscription
+    for (const user of users) {
+      if (!user.pushSubscriptions) continue;
+
+      for (const subscription of user.pushSubscriptions) {
+        try {
+          console.log(`[send-push] Sending to ${user.email}...`);
+          
+          await webpush.sendNotification(
+            {
+              endpoint: subscription.endpoint,
+              keys: subscription.keys,
+            },
+            JSON.stringify(notificationPayload)
+          );
+          successCount++;
+        } catch (error: any) {
+          failureCount++;
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          console.error(`[send-push] Failed to send to ${user.email}: ${errorMsg}`);
+          
+          // If 410 Gone, remove the subscription
+          if (error.statusCode === 410) {
+            console.log(`[send-push] Removing invalid subscription for ${user.email}`);
+            user.pushSubscriptions = user.pushSubscriptions.filter(
+              (sub: any) => sub.endpoint !== subscription.endpoint
+            );
+            await user.save();
+          }
+          
+          errors.push(errorMsg);
+        }
+      }
+    }
+
+    console.log('[send-push] Sending complete');
+    console.log({
+      successCount,
+      failureCount,
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'Push notification sent successfully',
-      payload: notificationPayload,
+      message: 'Push notifications processed',
+      stats: {
+        sent: successCount,
+        failed: failureCount,
+        totalUsers: users.length,
+      },
+      errors: errors.length > 0 ? errors : undefined,
     });
 
   } catch (error) {

@@ -35,6 +35,16 @@ export interface IUser extends Document {
     authProvider?: 'email' | 'google';
     profileCompleted?: boolean;
     
+    // Push notifications
+    pushSubscriptions?: {
+        endpoint: string;
+        keys: {
+            p256dh: string;
+            auth: string;
+        };
+        createdAt: Date;
+    }[];
+    
     comparePassword(candidate: string): Promise<boolean>;
     hasRole(role: Role): boolean;
     addRole(role: Role): void;
@@ -146,6 +156,30 @@ const UserSchema = new Schema<IUser>(
             type: Boolean,
             default: false,
         },
+        
+        // Push notifications
+        pushSubscriptions: [
+            {
+                endpoint: {
+                    type: String,
+                    required: true,
+                },
+                keys: {
+                    p256dh: {
+                        type: String,
+                        required: true,
+                    },
+                    auth: {
+                        type: String,
+                        required: true,
+                    },
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     {
         timestamps: true,

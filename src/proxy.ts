@@ -9,6 +9,7 @@ const PUBLIC_ROUTES = [
     "/auth/login",
     "/api/auth/register",
     "/auth/register",
+    "/api/push/vapid-public-key",
     // Add any other public routes here
 ];
 

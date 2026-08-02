@@ -7,6 +7,7 @@ import InstallPrompt from "@/components/InstallPrompt";
 import {Header} from "@/components/header";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { NotificationDisplay } from "@/components/notifications/notification-display";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -139,6 +140,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
       <SessionProvider>
         <AuthProvider>
+          <ServiceWorkerRegistration />
           <Header />
           {children}
           <NotificationDisplay />
