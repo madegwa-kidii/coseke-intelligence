@@ -302,7 +302,7 @@ function NotificationsContent() {
         <div className="mt-6 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-4">
           <p className="text-sm text-slate-700 dark:text-slate-300">
             <strong>Note:</strong> {activeTab === 'email' 
-              ? 'Emails will be sent using Resend. Ensure valid email addresses are provided.'
+              ? 'Emails will be sent using Nodemailer. Ensure valid email addresses are provided.'
               : 'Push notifications will be sent to subscribed users. Ensure the browser has granted notification permissions.'}
           </p>
         </div>
