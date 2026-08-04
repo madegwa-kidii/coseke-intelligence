@@ -1,10 +1,23 @@
 import { sendEmail } from '../emails';
 
 export async function sendPasswordResetEmail(email: string, rawToken: string) {
-    const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${rawToken}`;
+    const nextAuthUrl = process.env.NEXTAUTH_URL;
+    
+    console.log("[Password Reset Email] Preparing to send", {
+        email,
+        nextAuthUrl: nextAuthUrl ? "✓" : "✗ MISSING",
+        timestamp: new Date().toISOString(),
+    });
+
+    const resetUrl = `${nextAuthUrl}/auth/reset-password?token=${rawToken}`;
+
+    console.log("[Password Reset Email] URL generated:", {
+        url: resetUrl,
+        timestamp: new Date().toISOString(),
+    });
 
     try {
-        await sendEmail({
+        const result = await sendEmail({
             to: email,
             subject: "Reset your password - Coseke Intelligence",
             html: `
@@ -17,8 +30,27 @@ export async function sendPasswordResetEmail(email: string, rawToken: string) {
                 </div>
             `,
         });
+
+        if (!result.success) {
+            console.error("[Password Reset Email] ✗ Send failed", {
+                email,
+                error: result.error,
+                timestamp: new Date().toISOString(),
+            });
+            throw new Error(`Email send failed: ${result.error}`);
+        }
+
+        console.log("[Password Reset Email] ✓ Sent successfully", {
+            email,
+            messageId: result.messageId,
+            timestamp: new Date().toISOString(),
+        });
     } catch (error) {
-        console.error("Failed to send password reset email:", error);
+        console.error("[Password Reset Email] ✗ Exception occurred:", {
+            email,
+            error: error instanceof Error ? error.message : String(error),
+            timestamp: new Date().toISOString(),
+        });
         throw error;
     }
 }
