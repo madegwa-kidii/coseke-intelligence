@@ -116,6 +116,30 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@theme inline {
+  /* ...existing... */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+}
+
+:root {
+  /* ...existing... */
+  --success: oklch(0.6 0.16 145);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.75 0.17 75);
+  --warning-foreground: oklch(0.145 0 0);
+}
+
+.dark {
+  /* ...existing... */
+  --success: oklch(0.7 0.15 145);
+  --success-foreground: oklch(0.145 0 0);
+  --warning: oklch(0.8 0.16 75);
+  --warning-foreground: oklch(0.145 0 0);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

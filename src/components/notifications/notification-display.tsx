@@ -12,56 +12,59 @@ const iconMap = {
     info: Info,
 };
 
-const colorMap = {
+// Static class strings per type — kept literal (not interpolated) so Tailwind's
+// JIT scanner can pick them up; dynamic strings like `border-${type}` won't work.
+const typeClasses = {
     success: {
-        bg: 'var(--success)',
-        text: 'white',
-        border: 'var(--success)',
+        border: 'border-success',
+        icon: 'text-success',
+        actionBorder: 'border-success',
+        actionText: 'text-success',
+        ring: 'focus:ring-success',
     },
     error: {
-        bg: '#ef4444',
-        text: 'white',
-        border: '#ef4444',
+        border: 'border-destructive',
+        icon: 'text-destructive',
+        actionBorder: 'border-destructive',
+        actionText: 'text-destructive',
+        ring: 'focus:ring-destructive',
     },
     warning: {
-        bg: '#f59e0b',
-        text: 'white',
-        border: '#f59e0b',
+        border: 'border-warning',
+        icon: 'text-warning',
+        actionBorder: 'border-warning',
+        actionText: 'text-warning',
+        ring: 'focus:ring-warning',
     },
     info: {
-        bg: 'var(--text-primary)',
-        text: 'var(--background)',
-        border: 'var(--text-primary)',
+        border: 'border-foreground',
+        icon: 'text-foreground',
+        actionBorder: 'border-foreground',
+        actionText: 'text-foreground',
+        ring: 'focus:ring-foreground',
     },
-};
+} as const;
 
 function NotificationItem({ notification }: { notification: Notification }) {
     const { removeNotification } = useNotifications();
     const Icon = iconMap[notification.type];
-    const colors = colorMap[notification.type];
+    const classes = typeClasses[notification.type];
 
     return (
         <div
-            className="max-w-sm w-full shadow-lg rounded-lg pointer-events-auto overflow-hidden transform transition-all duration-300 ease-in-out"
-            style={{
-                background: 'var(--surface)',
-                border: `1px solid ${colors.border}`,
-            }}
+            className={`max-w-sm w-full bg-card border ${classes.border} shadow-lg rounded-lg pointer-events-auto overflow-hidden transform transition-all duration-300 ease-in-out`}
         >
             <div className="p-4">
                 <div className="flex items-start">
                     <div className="flex-shrink-0">
-                        <Icon
-                            className="h-6 w-6"
-                            style={{ color: colors.bg }}
-                        />
+                        <Icon className={`h-6 w-6 ${classes.icon}`} />
                     </div>
                     <div className="ml-3 w-0 flex-1 pt-0.5">
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                        <p className="text-sm font-medium text-foreground">
                             {notification.title}
                         </p>
                         {notification.message && (
-                            <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            <p className="mt-1 text-sm text-muted-foreground">
                                 {notification.message}
                             </p>
                         )}
@@ -73,11 +76,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
                                         size="sm"
                                         variant="outline"
                                         onClick={action.onClick}
-                                        className="text-xs"
-                                        style={{
-                                            borderColor: colors.bg,
-                                            color: colors.bg,
-                                        }}
+                                        className={`text-xs ${classes.actionBorder} ${classes.actionText}`}
                                     >
                                         {action.label}
                                     </Button>
@@ -87,11 +86,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
                     </div>
                     <div className="ml-4 flex-shrink-0 flex">
                         <button
-                            className="rounded-md inline-flex hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-opacity"
-                            style={{
-                                color: 'var(--text-tertiary)',
-                                '--tw-ring-color': colors.bg
-                            } as React.CSSProperties}
+                            className={`rounded-md inline-flex text-muted-foreground hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 ${classes.ring} transition-opacity`}
                             onClick={() => removeNotification(notification.id)}
                         >
                             <span className="sr-only">Close</span>

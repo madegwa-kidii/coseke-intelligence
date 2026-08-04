@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,11 +15,9 @@ function LoginForm() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
@@ -29,23 +28,27 @@ function LoginForm() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        toast.error('Sign in failed', { description: result.error });
       } else if (result?.ok) {
+        toast.success('Welcome back', { description: 'You are now signed in.' });
         router.push('/dashboard');
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      toast.error('Sign in failed', {
+        description: err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setError('');
     try {
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Google login failed');
+      toast.error('Google sign in failed', {
+        description: err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      });
     }
   };
 
@@ -66,12 +69,6 @@ function LoginForm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {error && (
-                <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-200">
-                  {error}
-                </div>
-            )}
-
             {/* OAuth Buttons */}
             <div className="space-y-3">
               <button
