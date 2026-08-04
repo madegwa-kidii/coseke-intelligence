@@ -1,3 +1,4 @@
+// app/api/push/send-public/route.tsx
 import { NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
 import { connectToDatabase } from '@/lib/db';

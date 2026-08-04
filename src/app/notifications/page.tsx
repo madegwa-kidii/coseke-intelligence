@@ -67,37 +67,41 @@ function NotificationsContent() {
     }
   };
 
-  const handleSendPush = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const handleSendPush = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-    if (!pushData.title || !pushData.body) {
-      toast.error('Please fill in title and body');
-      return;
-    }
+        if (!pushData.title || !pushData.body) {
+            toast.error('Please fill in title and body');
+            return;
+        }
 
-    setPushLoading(true);
-    try {
-      const response = await fetch('/api/notifications/send-push', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pushData),
-      });
+        setPushLoading(true);
+        try {
+            const response = await fetch('/api/push/send-public', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pushData),
+            });
 
-      const result = await response.json();
+            const result = await response.json();
 
-      if (response.ok) {
-        toast.success('Push notification sent successfully!');
-        setPushData({ title: '', body: '', icon: '', badge: '' });
-      } else {
-        toast.error(result.message || 'Failed to send push notification');
-      }
-    } catch (error) {
-      toast.error('Error sending push notification');
-      console.error(error);
-    } finally {
-      setPushLoading(false);
-    }
-  };
+            if (response.ok) {
+                toast.success(
+                    result.sent > 0
+                        ? `Sent to ${result.sent} subscriber${result.sent === 1 ? '' : 's'}${result.failed ? ` (${result.failed} failed)` : ''}`
+                        : result.message || 'No subscribers to notify'
+                );
+                setPushData({ title: '', body: '', icon: '', badge: '' });
+            } else {
+                toast.error(result.error || result.message || 'Failed to send push notification');
+            }
+        } catch (error) {
+            toast.error('Error sending push notification');
+            console.error(error);
+        } finally {
+            setPushLoading(false);
+        }
+    };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
