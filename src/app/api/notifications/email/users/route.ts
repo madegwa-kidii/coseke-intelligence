@@ -2,9 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { connectToDatabase } from "@/lib/db";
-import { User } from "@/models/User";
+import { User, Role } from "@/models/user";
 import { getUserByEmail } from "@/lib/users";
-import { Role } from "@/lib/roles";
 
 // Helper function to check if user is admin
 async function isAdmin(): Promise<boolean> {
