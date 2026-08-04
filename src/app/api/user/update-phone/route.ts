@@ -1,7 +1,7 @@
 // app/api/user/update-phone/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { User } from "@/models/User";
+import { User } from "@/models/user";
 import {connectToDatabase} from "@/lib/db";
 
 
