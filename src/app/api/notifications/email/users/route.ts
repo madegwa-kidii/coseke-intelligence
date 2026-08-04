@@ -1,4 +1,4 @@
-// app/api/emails/users/route.ts
+// app/api/notifications/email/users/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { connectToDatabase } from "@/lib/db";

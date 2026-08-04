@@ -1,4 +1,4 @@
-// app/api/emails/send/route.ts
+// app/api/notifications/email/send/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getUserByEmail } from "@/lib/users";
