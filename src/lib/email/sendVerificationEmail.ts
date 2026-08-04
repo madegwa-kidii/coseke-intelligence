@@ -1,10 +1,23 @@
 import { sendEmail } from '../emails';
 
 export async function sendVerificationEmail(email: string, rawToken: string) {
-    const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
+    const nextAuthUrl = process.env.NEXTAUTH_URL;
+    
+    console.log("[Verification Email] Preparing to send", {
+        email,
+        nextAuthUrl: nextAuthUrl ? "✓" : "✗ MISSING",
+        timestamp: new Date().toISOString(),
+    });
+
+    const verifyUrl = `${nextAuthUrl}/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
+
+    console.log("[Verification Email] URL generated:", {
+        url: verifyUrl,
+        timestamp: new Date().toISOString(),
+    });
 
     try {
-        await sendEmail({
+        const result = await sendEmail({
             to: email,
             subject: "Verify your email - Coseke Intelligence",
             html: `
@@ -16,8 +29,27 @@ export async function sendVerificationEmail(email: string, rawToken: string) {
                 </div>
             `,
         });
+
+        if (!result.success) {
+            console.error("[Verification Email] ✗ Send failed", {
+                email,
+                error: result.error,
+                timestamp: new Date().toISOString(),
+            });
+            throw new Error(`Email send failed: ${result.error}`);
+        }
+
+        console.log("[Verification Email] ✓ Sent successfully", {
+            email,
+            messageId: result.messageId,
+            timestamp: new Date().toISOString(),
+        });
     } catch (error) {
-        console.error("Failed to send verification email:", error);
+        console.error("[Verification Email] ✗ Exception occurred:", {
+            email,
+            error: error instanceof Error ? error.message : String(error),
+            timestamp: new Date().toISOString(),
+        });
         throw error;
     }
 }

@@ -22,20 +22,33 @@ async function isAdmin(): Promise<boolean> {
 }
 
 export async function POST(req: NextRequest) {
+    console.log("[Email Send API] Request received at", new Date().toISOString());
+
     try {
         // Check admin authorization
+        console.log("[Email Send API] Checking admin authorization");
         if (!(await isAdmin())) {
+            console.error("[Email Send API] ✗ Unauthorized - user is not admin");
             return NextResponse.json(
                 { error: "Unauthorized. Admin access required." },
                 { status: 403 }
             );
         }
+        console.log("[Email Send API] ✓ User is admin");
 
         const body = await req.json();
         const { recipients, subject, text, html } = body;
 
+        console.log("[Email Send API] Request payload", {
+            recipientCount: Array.isArray(recipients) ? recipients.length : 1,
+            subject: subject ? "provided" : "missing",
+            hasText: !!text,
+            hasHtml: !!html,
+        });
+
         // Validation
         if (!recipients || (Array.isArray(recipients) && recipients.length === 0)) {
+            console.error("[Email Send API] ✗ No recipients provided");
             return NextResponse.json(
                 { error: "At least one recipient is required" },
                 { status: 400 }
@@ -43,6 +56,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!subject || !subject.trim()) {
+            console.error("[Email Send API] ✗ Subject is empty");
             return NextResponse.json(
                 { error: "Subject is required" },
                 { status: 400 }
@@ -50,6 +64,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!text && !html) {
+            console.error("[Email Send API] ✗ No email body provided");
             return NextResponse.json(
                 { error: "Email body (text or html) is required" },
                 { status: 400 }
@@ -59,11 +74,18 @@ export async function POST(req: NextRequest) {
         // Handle single or bulk emails
         if (Array.isArray(recipients)) {
             // Bulk email
+            console.log("[Email Send API] Sending bulk emails to", recipients.length, "recipients");
             const result = await sendBulkEmails({
                 recipients,
                 subject,
                 text,
                 html,
+            });
+
+            console.log("[Email Send API] ✓ Bulk send complete", {
+                total: result.total,
+                successful: result.successful,
+                failed: result.failed,
             });
 
             return NextResponse.json({
@@ -74,6 +96,7 @@ export async function POST(req: NextRequest) {
             });
         } else {
             // Single email
+            console.log("[Email Send API] Sending single email to", recipients);
             const result = await sendEmail({
                 to: recipients,
                 subject,
@@ -82,11 +105,19 @@ export async function POST(req: NextRequest) {
             });
 
             if (!result.error) {
+                console.log("[Email Send API] ✓ Single email sent", {
+                    to: recipients,
+                    messageId: result.messageId,
+                });
                 return NextResponse.json({
                     message: "Email sent successfully",
                     messageId: result.messageId,
                 });
             } else {
+                console.error("[Email Send API] ✗ Failed to send single email", {
+                    to: recipients,
+                    error: result.error,
+                });
                 return NextResponse.json(
                     { error: "Failed to send email", details: result.error },
                     { status: 500 }
@@ -94,7 +125,10 @@ export async function POST(req: NextRequest) {
             }
         }
     } catch (error) {
-        console.error("Error in email send API:", error);
+        console.error("[Email Send API] ✗ Exception occurred:", {
+            message: error instanceof Error ? error.message : String(error),
+            timestamp: new Date().toISOString(),
+        });
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
