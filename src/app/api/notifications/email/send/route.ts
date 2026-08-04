@@ -81,14 +81,14 @@ export async function POST(req: NextRequest) {
                 html,
             });
 
-            if (result.success) {
+            if (!result.error) {
                 return NextResponse.json({
                     message: "Email sent successfully",
                     messageId: result.messageId,
                 });
             } else {
                 return NextResponse.json(
-                    { error: "Failed to send email" },
+                    { error: "Failed to send email", details: result.error },
                     { status: 500 }
                 );
             }

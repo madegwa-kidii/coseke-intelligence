@@ -1,13 +1,10 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '../emails';
 
 export async function sendVerificationEmail(email: string, rawToken: string) {
     const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
 
     try {
-        await resend.emails.send({
-            from: "noreply@coseke.com",
+        await sendEmail({
             to: email,
             subject: "Verify your email - Coseke Intelligence",
             html: `

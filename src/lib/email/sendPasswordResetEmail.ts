@@ -1,13 +1,10 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '../emails';
 
 export async function sendPasswordResetEmail(email: string, rawToken: string) {
     const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${rawToken}`;
 
     try {
-        await resend.emails.send({
-            from: "noreply@coseke.com",
+        await sendEmail({
             to: email,
             subject: "Reset your password - Coseke Intelligence",
             html: `
